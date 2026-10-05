@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Майстер встановлення: ліцензії та безпечне завантаження ПЗ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  --bg: #e9eef7;
+  --win: #ffffff;
+  --bar: #14306b;
+  --bar-text: #ffffff;
+  --text: #15203a;
+  --muted: #5a6784;
+  --line: #ccd5e6;
+  --soft: #f3f6fc;
+  --accent: #2563eb;
+  --accent-text: #ffffff;
+  --good: #11803f;
+  --good-bg: #e2f6ea;
+  --bad: #c2303a;
+  --bad-bg: #fde8ea;
+  --warn-bg: #fff4d6;
+  --font: "Nunito", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1424; --win: #172036; --bar: #0b2a66; --text: #e8edf8; --muted: #9fb0d0;
+    --line: #2d3a58; --soft: #1d2842; --accent: #5b8cff; --accent-text: #0a1226;
+    --good: #5fd592; --good-bg: #123524; --bad: #ff8088; --bad-bg: #3b1a20; --warn-bg: #3a3014;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1424; --win: #172036; --bar: #0b2a66; --text: #e8edf8; --muted: #9fb0d0;
+  --line: #2d3a58; --soft: #1d2842; --accent: #5b8cff; --accent-text: #0a1226;
+  --good: #5fd592; --good-bg: #123524; --bad: #ff8088; --bad-bg: #3b1a20; --warn-bg: #3a3014;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: var(--font); font-size: 17px; line-height: 1.5;
+}
+.wrap { max-width: 760px; margin: 0 auto; padding: 16px 12px 40px; }
+
+/* окно-інсталятор */
+.window {
+  background: var(--win); border: 2px solid var(--bar); border-radius: 10px;
+  overflow: hidden; box-shadow: 6px 6px 0 var(--bar);
+}
+.titlebar {
+  background: var(--bar); color: var(--bar-text); display: flex; align-items: center;
+  justify-content: space-between; gap: 10px; padding: 8px 12px; font-weight: 700; font-size: 15px;
+}
+.titlebar .dots { display: flex; gap: 6px; flex: none; }
+.titlebar .dots i { width: 12px; height: 12px; border-radius: 3px; background: rgba(255,255,255,.35); display: block; }
+.titlebar .dots i:last-child { background: #ff6b6b; }
+.content { padding: 20px 18px 22px; }
+h1 { font-size: 26px; line-height: 1.2; margin: 0 0 10px; font-weight: 800; }
+h2 { font-size: 21px; line-height: 1.3; margin: 0 0 14px; font-weight: 800; }
+p { margin: 0 0 12px; }
+.muted { color: var(--muted); }
+
+/* прогрес як установка */
+.progress-row { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.progress-label { font-weight: 700; font-size: 14px; white-space: nowrap; color: var(--muted); }
+.track { flex: 1; height: 16px; border: 2px solid var(--bar); border-radius: 4px; background: var(--soft); overflow: hidden; }
+.fill {
+  height: 100%; width: 0; transition: width .5s ease;
+  background: repeating-linear-gradient(90deg, var(--accent) 0 12px, transparent 12px 15px);
+}
+.score-chip { font-weight: 800; font-size: 14px; background: var(--soft); border: 1px solid var(--line); border-radius: 6px; padding: 2px 10px; white-space: nowrap; }
+
+.topic { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+
+/* кнопки */
+button { font-family: inherit; font-size: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn {
+  background: var(--accent); color: var(--accent-text); border: 2px solid var(--bar);
+  border-radius: 8px; padding: 10px 22px; font-weight: 800; box-shadow: 3px 3px 0 var(--bar);
+  transition: transform .08s, box-shadow .08s;
+}
+.btn:hover:not(:disabled) { transform: translate(1px, 1px); box-shadow: 2px 2px 0 var(--bar); }
+.btn:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--bar); }
+.btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+.btn.ghost { background: var(--win); color: var(--text); }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+
+/* варіанти */
+.opts { display: grid; gap: 10px; }
+.opt {
+  display: flex; align-items: flex-start; gap: 12px; text-align: left; width: 100%;
+  background: var(--win); border: 2px solid var(--line); border-radius: 8px; padding: 11px 14px;
+  transition: border-color .12s, background .12s;
+}
+.opt:hover:not(:disabled) { border-color: var(--accent); }
+.opt .mark {
+  flex: none; width: 22px; height: 22px; margin-top: 2px; border: 2px solid var(--muted);
+  display: grid; place-items: center; font-size: 14px; font-weight: 800; line-height: 1;
+}
+.opt.radio .mark { border-radius: 50%; }
+.opt.check .mark { border-radius: 5px; }
+.opt.sel { border-color: var(--accent); background: var(--soft); }
+.opt.sel .mark { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+.opt.sel .mark::after { content: "✓"; }
+.opt.mono .txt { font-family: var(--mono); font-size: 15px; word-break: break-all; }
+.opt.good { border-color: var(--good); background: var(--good-bg); }
+.opt.bad { border-color: var(--bad); background: var(--bad-bg); }
+.opt:disabled { cursor: default; }
+
+/* співставлення */
+.rows { display: grid; gap: 12px; }
+.row { display: grid; grid-template-columns: 1fr; gap: 6px; padding: 10px 12px; border: 2px solid var(--line); border-radius: 8px; background: var(--win); }
+.row .term { font-weight: 800; }
+.row select {
+  width: 100%; font-family: inherit; font-size: 16px; padding: 9px 10px; border-radius: 6px;
+  border: 2px solid var(--line); background: var(--soft); color: var(--text);
+}
+.row.good { border-color: var(--good); background: var(--good-bg); }
+.row.bad { border-color: var(--bad); background: var(--bad-bg); }
+.row .fix { font-size: 15px; color: var(--bad); font-weight: 700; }
+@media (min-width: 620px) {
+  .row.match { grid-template-columns: 200px 1fr; align-items: center; gap: 14px; }
+  .row.match .fix { grid-column: 2; }
+}
+
+/* порядок */
+.order { display: grid; gap: 8px; padding: 0; margin: 0; list-style: none; }
+.order li {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 2px solid var(--line);
+  border-radius: 8px; background: var(--win);
+}
+.order .n { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--bar); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 14px; }
+.order .t { flex: 1; }
+.order .mv { display: flex; gap: 4px; flex: none; }
+.order .mv button {
+  width: 36px; height: 36px; border: 2px solid var(--line); border-radius: 6px; background: var(--soft); font-weight: 800;
+}
+.order .mv button:hover:not(:disabled) { border-color: var(--accent); }
+.order .mv button:disabled { opacity: .35; cursor: default; }
+.order li.good { border-color: var(--good); background: var(--good-bg); }
+.order li.bad { border-color: var(--bad); background: var(--bad-bg); }
+
+/* так/ні */
+.yn { display: flex; gap: 8px; }
+.yn button {
+  flex: 1; padding: 9px 8px; border: 2px solid var(--line); border-radius: 6px; background: var(--soft); font-weight: 800;
+}
+.yn button:hover:not(:disabled) { border-color: var(--accent); }
+.yn button.sel { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+.yn button:disabled { cursor: default; }
+.yn button.good { background: var(--good-bg); border-color: var(--good); color: var(--good); }
+.yn button.bad { background: var(--bad-bg); border-color: var(--bad); color: var(--bad); }
+
+/* відгук */
+.feedback { margin-top: 18px; padding: 14px 16px; border-radius: 8px; border: 2px solid; }
+.feedback.ok { background: var(--good-bg); border-color: var(--good); }
+.feedback.no { background: var(--bad-bg); border-color: var(--bad); }
+.feedback .head { font-weight: 800; font-size: 19px; margin-bottom: 4px; }
+.feedback.ok .head { color: var(--good); }
+.feedback.no .head { color: var(--bad); }
+.feedback p { margin: 0 0 6px; }
+.feedback p:last-child { margin-bottom: 0; }
+
+/* старт */
+.rules { display: grid; gap: 8px; margin: 14px 0 18px; padding: 0; list-style: none; }
+.rules li { padding: 10px 14px; background: var(--soft); border-radius: 8px; border-left: 5px solid var(--accent); }
+label.field { display: block; font-weight: 700; margin-bottom: 6px; }
+input[type="text"] {
+  width: 100%; font-family: inherit; font-size: 17px; padding: 10px 12px; border-radius: 8px;
+  border: 2px solid var(--line); background: var(--soft); color: var(--text);
+}
+
+/* результат */
+.big { display: flex; align-items: baseline; gap: 8px; margin: 4px 0 6px; }
+.big .num { font-size: 64px; font-weight: 800; line-height: 1; color: var(--accent); }
+.big .of { font-size: 24px; font-weight: 700; color: var(--muted); }
+.verdict { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+.review { list-style: none; padding: 0; margin: 14px 0; display: grid; gap: 6px; }
+.review li { display: flex; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--soft); font-size: 16px; }
+.review .st { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: #fff; font-size: 14px; }
+.review .st.y { background: var(--good); }
+.review .st.n { background: var(--bad); }
+.review .pts { margin-left: auto; font-weight: 800; color: var(--muted); white-space: nowrap; }
+.memo { background: var(--warn-bg); border-radius: 8px; padding: 14px 16px; margin-top: 8px; }
+.memo h3 { margin: 0 0 6px; font-size: 18px; }
+.memo ul { margin: 0; padding-left: 20px; }
+.memo li { margin-bottom: 4px; }
+textarea.copybox {
+  width: 100%; margin-top: 10px; font-family: var(--mono); font-size: 14px; padding: 10px; border-radius: 8px;
+  border: 2px solid var(--line); background: var(--soft); color: var(--text); resize: none;
+}
+@media (prefers-reduced-motion: reduce) { .fill, .btn, .opt { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="window">
+    <div class="titlebar">
+      <span id="wtitle">Майстер встановлення · Безпечне ПЗ</span>
+      <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+    </div>
+    <div class="content" id="app"></div>
+  </div>
+</div>
+
+<script>
+/* ------------------ ДАНІ ЗАВДАНЬ ------------------ */
+const Q = [
+  {
+    type: "single", topic: "Ліцензії",
+    q: "Що таке ліцензія на програмне забезпечення?",
+    options: [
+      { t: "Документ (угода), який визначає, як саме можна використовувати програму", ok: true },
+      { t: "Пароль для входу в комп'ютер" },
+      { t: "Назва файлу, яким запускається програма" },
+      { t: "Ціна програми в магазині" }
+    ],
+    explain: "Ліцензія — це угода між автором програми та користувачем. У ній написано, що можна робити (встановлювати, копіювати, змінювати), а що заборонено."
+  },
+  {
+    type: "match", topic: "Види ПЗ",
+    q: "Поєднай вид програмного забезпечення з його описом.",
+    pairs: [
+      { term: "Freeware (безкоштовне)", def: "Користуватися можна безкоштовно, але автор залишає за собою права, змінювати програму не можна" },
+      { term: "Shareware (умовно-безкоштовне)", def: "Пробна версія: працює безкоштовно обмежений час, потім потрібно купити" },
+      { term: "Open Source (відкритий код)", def: "Код відкритий: його можна вивчати та змінювати за умовами ліцензії" },
+      { term: "Піратська копія", def: "Незаконна копія, яку поширюють без дозволу автора" }
+    ],
+    explain: "Freeware — безкоштовно, але без права змінювати. Shareware — «спробуй і купи». Open Source — відкритий код. Піратська копія — порушення авторських прав."
+  },
+  {
+    type: "single", shuffle: false, topic: "Піратство",
+    q: "Правда чи ні: якщо антивірус нічого не знайшов, піратська програма точно безпечна.",
+    options: [
+      { t: "Правда" },
+      { t: "Неправда", ok: true }
+    ],
+    explain: "Зламані програми часто містять шкідливий код, який антивірус одразу не помічає. До того ж користування піратським ПЗ порушує закон про авторське право."
+  },
+  {
+    type: "order", topic: "Порядок дій",
+    q: "Розстав кроки безпечного встановлення програми у правильному порядку (від першого до останнього).",
+    items: [
+      "Знайти офіційний сайт розробника програми",
+      "Завантажити інсталятор саме з офіційного сайту",
+      "Перевірити завантажений файл антивірусом",
+      "Запустити інсталятор, уважно прочитати угоду та налаштування",
+      "Завершити встановлення й запустити програму"
+    ],
+    explain: "Правильний порядок: знайти офіційний сайт → завантажити → перевірити антивірусом → встановити, читаючи кожен крок → запустити."
+  },
+  {
+    type: "single", mono: true, topic: "Безпечне джерело",
+    q: "Ти хочеш встановити браузер Mozilla Firefox. Яка адреса сайту найбезпечніша для завантаження?",
+    options: [
+      { t: "https://www.mozilla.org", ok: true },
+      { t: "http://firefox-skachaty-besplatno.top" },
+      { t: "http://free-soft-crack-download.xyz/firefox" },
+      { t: "http://mozilla.org.download-now.biz" }
+    ],
+    explain: "Офіційний сайт має адресу розробника — mozilla.org. Остання адреса хитра: справжня назва сайту стоїть наприкінці (download-now.biz), а «mozilla.org» — лише приманка на початку."
+  },
+  {
+    type: "multi", topic: "Ознаки небезпеки",
+    q: "Познач УСІ ознаки небезпечного сайту або файлу.",
+    options: [
+      { t: "Сайт обіцяє безкоштовно «зламану» платну програму", ok: true },
+      { t: "На сторінці багато мерехтливої реклами та різних кнопок «Завантажити»", ok: true },
+      { t: "На сайті є контакти розробника, політика конфіденційності та документація" },
+      { t: "Інструкція вимагає вимкнути антивірус перед запуском файлу", ok: true },
+      { t: "Адреса сайту збігається з назвою розробника програми" }
+    ],
+    explain: "Небезпечні ознаки: «злам» безкоштовно, купа реклами й фальшивих кнопок, прохання вимкнути антивірус. Контакти, документація та правильна адреса — ознаки надійного сайту."
+  },
+  {
+    type: "single", topic: "Розширення файлів",
+    q: "Тобі надіслали файл «foto_klasu.jpg.exe». Що це найімовірніше?",
+    options: [
+      { t: "Звичайна фотографія класу" },
+      { t: "Музичний файл" },
+      { t: "Програма, що маскується під фото — запускати не можна", ok: true },
+      { t: "Текстовий документ" }
+    ],
+    explain: "Справжнє розширення — те, що стоїть останнім. Тут це .exe, тобто програма. Шахраї додають «.jpg», щоб ти подумав, що це картинка. Такі файли не відкривають!"
+  },
+  {
+    type: "single", topic: "Під час встановлення",
+    q: "Під час встановлення з'явилась галочка «Додатково встановити пошукову панель і ще один браузер». Що зробити?",
+    options: [
+      { t: "Нічого не читати й натискати «Далі» до кінця" },
+      { t: "Уважно читати кроки та зняти галочки з усього зайвого", ok: true },
+      { t: "Натиснути «Погоджуюсь» на всі запитання" },
+      { t: "Вимкнути інтернет і надалі нічого не встановлювати" }
+    ],
+    explain: "Разом з програмою часто пропонують зайве: панелі, браузери, рекламу. Читай кожне вікно та знімай галочки зі всього, що тобі не потрібно."
+  },
+  {
+    type: "single", topic: "Оновлення",
+    q: "Чому важливо вчасно оновлювати встановлені програми?",
+    options: [
+      { t: "Щоб змінився колір значка програми" },
+      { t: "Оновлення закривають знайдені «дірки» в безпеці та виправляють помилки", ok: true },
+      { t: "Щоб комп'ютер працював повільніше" },
+      { t: "Це неважливо, якщо програма й так запускається" }
+    ],
+    explain: "Зловмисники шукають вразливості в старих версіях програм. Оновлення їх закривають, тому програми варто оновлювати — але лише з офіційних джерел."
+  },
+  {
+    type: "yesno", topic: "Можна чи ні",
+    q: "Познач, що можна робити, а що ні.",
+    items: [
+      { t: "Завантажити платну гру безкоштовно через торент", a: false },
+      { t: "Користуватися пробною версією програми протягом часу, який дозволив автор", a: true },
+      { t: "Встановити безкоштовний офісний пакет LibreOffice з офіційного сайту", a: true },
+      { t: "Копіювати куплену програму з ліцензійним ключем усім друзям, хоча ліцензія цього не дозволяє", a: false }
+    ],
+    explain: "Піратські копії та роздача ліцензійних ключів — порушення. А пробні версії й відкрите ПЗ з офіційних сайтів використовувати можна, дотримуючись умов ліцензії."
+  }
+];
+
+const MEMO = [
+  "Завантажуй програми лише з офіційного сайту розробника або з офіційних магазинів застосунків.",
+  "Перед встановленням перевір файл антивірусом і подивись на справжнє розширення (.exe, .msi — це програми).",
+  "Читай ліцензійну угоду та кожне вікно встановлення, знімай зайві галочки.",
+  "Не користуйся піратськими «зламаними» програмами — вони небезпечні й незаконні.",
+  "Питай дорослих, якщо не впевнений, і регулярно оновлюй програми."
+];
+
+/* ------------------ СТАН ------------------ */
+const app = document.getElementById("app");
+const wtitle = document.getElementById("wtitle");
+let name = "";
+let idx = 0, score = 0, results = [], prepared = [];
+let state = null;   // стан поточного завдання
+let checked = false;
+
+/* ------------------ УТИЛІТИ ------------------ */
+function esc(s) {
+  const d = document.createElement("div");
+  d.textContent = s;
+  return d.innerHTML;
+}
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function prepare(q) {
+  const p = { q };
+  if (q.type === "single" || q.type === "multi") {
+    p.options = q.shuffle === false ? q.options.slice() : shuffle(q.options);
+  } else if (q.type === "match") {
+    p.defs = shuffle(q.pairs.map(x => x.def));
+  } else if (q.type === "order") {
+    let order = q.items.map((_, i) => i);
+    let tries = 0;
+    do { order = shuffle(order); tries++; } while (order.every((v, i) => v === i) && tries < 20);
+    p.order = order;
+  }
+  return p;
+}
+function initState(p) {
+  const q = p.q;
+  if (q.type === "single") return { sel: null };
+  if (q.type === "multi") return { sel: new Set() };
+  if (q.type === "match") return { sel: q.pairs.map(() => -1) };
+  if (q.type === "order") return { arr: p.order.slice() };
+  if (q.type === "yesno") return { sel: q.items.map(() => null) };
+}
+function grade(title, sc) {
+  if (sc >= 9) return { t: "Кіберзахисник! 🛡️", m: "Відмінний результат. Ти чудово розумієшся на ліцензіях та безпечному завантаженні." };
+  if (sc >= 7) return { t: "Упевнений користувач 👍", m: "Дуже добре! Ще трохи уваги до деталей — і буде максимум." };
+  if (sc >= 4) return { t: "Непоганий початок 🙂", m: "Ти вже знаєш основи, але варто повторити пам'ятку нижче та спробувати ще раз." };
+  return { t: "Потрібне повторення 📘", m: "Не засмучуйся! Прочитай пам'ятку, повтори тему та пройди завдання знову." };
+}
+
+/* ------------------ ЕКРАНИ ------------------ */
+function showStart() {
+  wtitle.textContent = "Майстер встановлення · Безпечне ПЗ";
+  app.innerHTML = `
+    <h1>Встановлення програм: ліцензії та безпечне завантаження</h1>
+    <p>Інтерактивне завдання з інформатики для 6 класу. Ти пройдеш 10 кроків «майстра встановлення» — у кожному з них потрібно дати правильну відповідь.</p>
+    <ul class="rules">
+      <li>Усього <b>10 завдань</b>, за кожне правильне — <b>1 бал</b>. Максимум — <b>10 балів</b>.</li>
+      <li>Після кожної відповіді натискай «Перевірити» — побачиш пояснення.</li>
+      <li>У завданнях із кількома пунктами бал ставлять лише за повністю правильну відповідь.</li>
+    </ul>
+    <label class="field" for="nm">Твоє ім'я та прізвище</label>
+    <input type="text" id="nm" maxlength="60" autocomplete="off" placeholder="Наприклад: Олена Коваленко">
+    <div class="actions"><button class="btn" id="go">Почати встановлення</button></div>`;
+  const nm = document.getElementById("nm");
+  nm.value = name;
+  const start = () => { name = nm.value.trim() || "Учень"; startRun(); };
+  document.getElementById("go").onclick = start;
+  nm.onkeydown = e => { if (e.key === "Enter") start(); };
+}
+
+function startRun() {
+  idx = 0; score = 0; results = [];
+  prepared = Q.map(prepare);
+  showQuestion();
+}
+
+function showQuestion() {
+  checked = false;
+  const p = prepared[idx], q = p.q;
+  state = initState(p);
+  wtitle.textContent = "Крок " + (idx + 1) + " з " + Q.length + " · " + q.topic;
+  const pct = Math.round((idx / Q.length) * 100);
+  app.innerHTML = `
+    <div class="progress-row">
+      <span class="progress-label">Крок ${idx + 1} / ${Q.length}</span>
+      <div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><div class="fill" id="fill"></div></div>
+      <span class="score-chip" id="chip">${score} б.</span>
+    </div>
+    <div class="topic">${esc(q.topic)}</div>
+    <h2>${esc(q.q)}</h2>
+    <div id="body"></div>
+    <div id="fb"></div>
+    <div class="actions"><button class="btn" id="check" disabled>Перевірити</button></div>`;
+  requestAnimationFrame(() => { const f = document.getElementById("fill"); if (f) f.style.width = pct + "%"; });
+  renderBody();
+  document.getElementById("check").onclick = onCheck;
+}
+
+function updateReady() {
+  const btn = document.getElementById("check");
+  if (!btn || checked) return;
+  const q = prepared[idx].q;
+  let ready = true;
+  if (q.type === "single") ready = state.sel !== null;
+  else if (q.type === "multi") ready = state.sel.size > 0;
+  else if (q.type === "match") ready = state.sel.every(v => v >= 0);
+  else if (q.type === "yesno") ready = state.sel.every(v => v !== null);
+  btn.disabled = !ready;
+}
+
+/* ------------------ РЕНДЕР ТІЛА ПО ТИПАХ ------------------ */
+function renderBody() {
+  const p = prepared[idx], q = p.q, body = document.getElementById("body");
+
+  if (q.type === "single" || q.type === "multi") {
+    const multi = q.type === "multi";
+    body.innerHTML = `<div class="opts" role="${multi ? "group" : "radiogroup"}">` +
+      p.options.map((o, i) => `
+        <button class="opt ${multi ? "check" : "radio"} ${q.mono ? "mono" : ""}" data-i="${i}" role="${multi ? "checkbox" : "radio"}" aria-checked="false">
+          <span class="mark"></span><span class="txt">${esc(o.t)}</span>
+        </button>`).join("") + `</div>`;
+    body.querySelectorAll(".opt").forEach(b => {
+      b.onclick = () => {
+        if (checked) return;
+        const i = +b.dataset.i;
+        if (multi) { state.sel.has(i) ? state.sel.delete(i) : state.sel.add(i); }
+        else state.sel = i;
+        body.querySelectorAll(".opt").forEach(x => {
+          const k = +x.dataset.i;
+          const on = multi ? state.sel.has(k) : state.sel === k;
+          x.classList.toggle("sel", on);
+          x.setAttribute("aria-checked", on ? "true" : "false");
+        });
+        updateReady();
+      };
+    });
+  }
+
+  else if (q.type === "match") {
+    body.innerHTML = `<div class="rows">` + q.pairs.map((pr, i) => `
+      <div class="row match" data-i="${i}">
+        <div class="term">${esc(pr.term)}</div>
+        <select aria-label="${esc(pr.term)}">
+          <option value="-1">— обери опис —</option>
+          ${p.defs.map((d, k) => `<option value="${k}">${esc(d)}</option>`).join("")}
+        </select>
+        <div class="fix" hidden></div>
+      </div>`).join("") + `</div>`;
+    body.querySelectorAll(".row").forEach(r => {
+      r.querySelector("select").onchange = e => {
+        state.sel[+r.dataset.i] = +e.target.value;
+        updateReady();
+      };
+    });
+  }
+
+  else if (q.type === "order") {
+    drawOrder();
+  }
+
+  else if (q.type === "yesno") {
+    body.innerHTML = `<div class="rows">` + q.items.map((it, i) => `
+      <div class="row" data-i="${i}">
+        <div>${esc(it.t)}</div>
+        <div class="yn">
+          <button data-v="1">✅ Можна</button>
+          <button data-v="0">⛔ Не можна</button>
+        </div>
+      </div>`).join("") + `</div>`;
+    body.querySelectorAll(".row").forEach(r => {
+      r.querySelectorAll("button").forEach(b => {
+        b.onclick = () => {
+          if (checked) return;
+          state.sel[+r.dataset.i] = b.dataset.v === "1";
+          r.querySelectorAll("button").forEach(x => x.classList.toggle("sel", x === b));
+          updateReady();
+        };
+      });
+    });
+  }
+}
+
+function drawOrder(markResult) {
+  const q = prepared[idx].q, body = document.getElementById("body");
+  body.innerHTML = `<ol class="order">` + state.arr.map((orig, pos) => {
+    let cls = "";
+    if (markResult) cls = orig === pos ? "good" : "bad";
+    return `<li class="${cls}" data-pos="${pos}">
+      <span class="n">${pos + 1}</span>
+      <span class="t">${esc(q.items[orig])}</span>
+      <span class="mv">
+        <button data-d="-1" aria-label="Підняти вгору" ${checked || pos === 0 ? "disabled" : ""}>↑</button>
+        <button data-d="1" aria-label="Опустити вниз" ${checked || pos === state.arr.length - 1 ? "disabled" : ""}>↓</button>
+      </span></li>`;
+  }).join("") + `</ol>`;
+  body.querySelectorAll(".mv button").forEach(b => {
+    b.onclick = () => {
+      if (checked) return;
+      const pos = +b.closest("li").dataset.pos, d = +b.dataset.d, to = pos + d;
+      if (to < 0 || to >= state.arr.length) return;
+      [state.arr[pos], state.arr[to]] = [state.arr[to], state.arr[pos]];
+      drawOrder();
+      const nb = body.querySelector(`li[data-pos="${to}"] .mv button[data-d="${d}"]`) ||
+                 body.querySelector(`li[data-pos="${to}"] .mv button`);
+      if (nb && !nb.disabled) nb.focus();
+    };
+  });
+}
+
+/* ------------------ ПЕРЕВІРКА ------------------ */
+function onCheck() {
+  if (checked) return;
+  checked = true;
+  const p = prepared[idx], q = p.q, body = document.getElementById("body");
+  let ok = false;
+
+  if (q.type === "single") {
+    ok = !!p.options[state.sel].ok;
+    body.querySelectorAll(".opt").forEach(b => {
+      const o = p.options[+b.dataset.i];
+      b.disabled = true;
+      if (o.ok) b.classList.add("good");
+      else if (+b.dataset.i === state.sel) b.classList.add("bad");
+    });
+  }
+
+  else if (q.type === "multi") {
+    ok = p.options.every((o, i) => !!o.ok === state.sel.has(i));
+    body.querySelectorAll(".opt").forEach(b => {
+      const i = +b.dataset.i, o = p.options[i];
+      b.disabled = true;
+      if (o.ok) b.classList.add("good");
+      else if (state.sel.has(i)) b.classList.add("bad");
+    });
+  }
+
+  else if (q.type === "match") {
+    ok = true;
+    body.querySelectorAll(".row").forEach(r => {
+      const i = +r.dataset.i;
+      const right = p.defs.indexOf(q.pairs[i].def);
+      const good = state.sel[i] === right;
+      if (!good) ok = false;
+      r.classList.add(good ? "good" : "bad");
+      r.querySelector("select").disabled = true;
+      if (!good) {
+        const fx = r.querySelector(".fix");
+        fx.hidden = false;
+        fx.textContent = "Правильно: " + q.pairs[i].def;
+      }
+    });
+  }
+
+  else if (q.type === "order") {
+    ok = state.arr.every((v, i) => v === i);
+    drawOrder(true);
+  }
+
+  else if (q.type === "yesno") {
+    ok = true;
+    body.querySelectorAll(".row").forEach(r => {
+      const i = +r.dataset.i, ans = q.items[i].a;
+      const good = state.sel[i] === ans;
+      if (!good) ok = false;
+      r.classList.add(good ? "good" : "bad");
+      r.querySelectorAll("button").forEach(b => {
+        const v = b.dataset.v === "1";
+        b.disabled = true;
+        b.classList.remove("sel");
+        if (v === ans) b.classList.add("good");
+        else if (state.sel[i] === v) b.classList.add("bad");
+      });
+    });
+  }
+
+  if (ok) score++;
+  results.push(ok);
+  document.getElementById("chip").textContent = score + " б.";
+
+  const last = idx === Q.length - 1;
+  document.getElementById("fb").innerHTML = `
+    <div class="feedback ${ok ? "ok" : "no"}" role="status">
+      <div class="head">${ok ? "Правильно! +1 бал 🎉" : "Не зовсім. 0 балів"}</div>
+      <p>${esc(q.explain)}</p>
+    </div>`;
+  const actions = document.querySelector(".actions");
+  actions.innerHTML = `<button class="btn" id="next">${last ? "Показати результат" : "Далі"}</button>`;
+  const nx = document.getElementById("next");
+  nx.onclick = () => { idx++; last ? showResult() : showQuestion(); };
+  nx.focus();
+  nx.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+/* ------------------ РЕЗУЛЬТАТ ------------------ */
+function showResult() {
+  wtitle.textContent = "Встановлення завершено";
+  const g = grade(name, score);
+  const summary = "Учень: " + name + "\nТема: Інсталяція ПЗ. Ліцензії, безпечне завантаження\nРезультат: " + score + " з 10 балів";
+  app.innerHTML = `
+    <div class="progress-row">
+      <span class="progress-label">Готово</span>
+      <div class="track"><div class="fill" style="width:100%"></div></div>
+    </div>
+    <h2>${esc(name)}, твій результат:</h2>
+    <div class="big"><span class="num">${score}</span><span class="of">/ 10 балів</span></div>
+    <div class="verdict">${g.t}</div>
+    <p>${g.m}</p>
+    <ul class="review">
+      ${Q.map((q, i) => `
+        <li><span class="st ${results[i] ? "y" : "n"}">${results[i] ? "✓" : "✕"}</span>
+        <span>${i + 1}. ${esc(q.topic)}</span>
+        <span class="pts">${results[i] ? "1 / 1" : "0 / 1"}</span></li>`).join("")}
+    </ul>
+    <div class="memo">
+      <h3>Пам'ятка: запам'ятай головне</h3>
+      <ul>${MEMO.map(m => `<li>${esc(m)}</li>`).join("")}</ul>
+    </div>
+    <div class="actions">
+      <button class="btn" id="copy">Скопіювати результат для вчителя</button>
+      <button class="btn ghost" id="again">Пройти ще раз</button>
+    </div>
+    <textarea class="copybox" id="cb" rows="3" readonly aria-label="Результат для вчителя"></textarea>`;
+  const cb = document.getElementById("cb");
+  cb.value = summary;
+  document.getElementById("again").onclick = startRun;
+  document.getElementById("copy").onclick = async (e) => {
+    try {
+      await navigator.clipboard.writeText(summary);
+      e.target.textContent = "Скопійовано ✓";
+    } catch (err) {
+      cb.focus(); cb.select();
+      e.target.textContent = "Виділено — натисни Ctrl+C";
+    }
+  };
+  window.scrollTo({ top: 0 });
+}
+
+showStart();
+</script>
+</body>
+</html>
